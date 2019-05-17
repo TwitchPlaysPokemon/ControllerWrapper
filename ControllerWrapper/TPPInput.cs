@@ -55,8 +55,11 @@ namespace ControllerWrapper
         private string _macro = string.Empty;
         public string Macro { get { return _macro; } set { _macro = value.ToLowerInvariant(); } }
         public bool Hold { get; set; }
+        public bool WasHold => Hold || Math.Round(Sleep_Frames) < 0;
         public double Held_Frames { get; set; }
         public double Sleep_Frames { get; set; }
+        public double Expire_Frames { get; set; } = 0;
+        public bool IsExpired => Math.Round(Expire_Frames) <= 0;
         public IEnumerable<TPPInput> Series;
 
         public bool IsEmpty {

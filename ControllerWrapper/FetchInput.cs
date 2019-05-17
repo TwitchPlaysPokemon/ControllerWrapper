@@ -19,19 +19,26 @@ namespace ControllerWrapper
         private int scpController;
         private int maxSleep;
         private int minHeld;
+        private int maxHeld;
+        private int maxHoldDuration;
+        private bool HoldForever => maxHoldDuration <= 0;
+        private string forceFocus;
 
 
-        public FetchInput(ScpBus ctrlBus, int controller, int minHeldFrames, int maxSleepFrames, string newInputUrl, string doneInputUrl)
+        public FetchInput(ScpBus ctrlBus, int controller, int minHeldFrames, int maxHeldFrames, int maxSleepFrames, int maxHoldFrames, string newInputUrl, string doneInputUrl, string forceFocusProgram)
         {
             scpBus = ctrlBus;
             scpController = controller;
             maxSleep = maxSleepFrames;
             minHeld = minHeldFrames;
+            maxHeld = maxHeldFrames;
+            maxHoldDuration = maxHoldFrames;
             newInputEndpoint = newInputUrl;
             doneInputEndpoint = doneInputUrl;
             currentInput = new TPPInput();
             currentSeries = new Queue<TPPInput>();
             webClient = new ImpatientWebClient();
+            forceFocus = forceFocusProgram;
         }
 
         public void Frame()
@@ -50,7 +57,7 @@ namespace ControllerWrapper
                         var response = webClient.DownloadString($"{newInputEndpoint}?client=xbox");
                         ConsoleLogger.Debug(response);
                         var nextInput = JsonConvert.DeserializeObject<TPPInput>(response);
-                        if (!(currentInput.Hold && nextInput.IsEmpty))
+                        if (!((currentInput.Hold || !currentInput.IsExpired) && nextInput.IsEmpty))
                         {
                             currentInput = nextInput;
                         }
@@ -81,8 +88,21 @@ namespace ControllerWrapper
                     {
                         currentInput.active = true;
                         var frameLength = currentInput.Held_Frames + currentInput.Sleep_Frames;
-                        currentInput.Held_Frames = Math.Min(Math.Max(currentInput.Held_Frames, minHeld), frameLength - 1);
+                        currentInput.Held_Frames = Math.Min(Math.Min(Math.Max(currentInput.Held_Frames, minHeld), maxHeld), frameLength - 1);
                         currentInput.Sleep_Frames = Math.Min(Math.Min(currentInput.Sleep_Frames, maxSleep), frameLength - currentInput.Held_Frames);
+
+                        if (currentInput.Hold && !HoldForever)
+                        {
+                            currentInput.Hold = false;
+                            var shiftFrames = maxHoldDuration - currentInput.Held_Frames;
+                            currentInput.Held_Frames += shiftFrames;
+                            currentInput.Sleep_Frames -= shiftFrames;
+                            if (currentInput.Sleep_Frames < 0) // input total duration was lower than maxHold
+                            { 
+                                currentInput.Held_Frames += currentInput.Sleep_Frames;
+                                currentInput.Expire_Frames -= currentInput.Sleep_Frames;
+                            }
+                        }
                     }
                 }
             }
@@ -104,11 +124,17 @@ namespace ControllerWrapper
                     }
                 }
             }
-            if (currentInput.active && currentInput.Held_Frames > 0)
+            if (currentInput.active && (currentInput.Held_Frames > 0 || currentInput.Expire_Frames > 0))
             {
                 var input = currentInput.ToX360();
+
+                if (input.Buttons != 0 && !String.IsNullOrWhiteSpace(forceFocus))
+                    ForceFocus.BringMainWindowToFront(forceFocus);
+
                 scpBus.Report(scpController, input.GetReport());
                 ConsoleLogger.Info($"Buttons: {input.Buttons}");
+                if (currentInput.Held_Frames <= 0)
+                    currentInput.Expire_Frames--;
             }
             else if (!currentInput.Hold)
             {
