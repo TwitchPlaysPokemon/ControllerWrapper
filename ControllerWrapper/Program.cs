@@ -18,6 +18,9 @@ namespace ControllerWrapper
             Console.WriteLine("-inputendpoint [url]\tSets the URL to fetch inputs from");
             Console.WriteLine("-doneendpoint [url]\tSets the URL that marks inputs complete");
             Console.WriteLine("-controller [number]\tChooses the controller number to simulate. Default is 1.");
+            Console.WriteLine("-lstickthrow [number]\tSets the maximum throw of the left stick from 0-1. Default is 1.");
+            Console.WriteLine("-rstickthrow [number]\tSets the maximum throw of the right stick from 0-1. Default is 1.");
+            Console.WriteLine("-toggletriggers \tLeft and Right trigger are toggled each time they are pressed");
             Console.WriteLine("-minheldframes [frames]\tSets the minimum duration an input will be held.");
             Console.WriteLine("-maxsleepframes [frames]\tSets the maximum duration between inputs.");
             Console.WriteLine("-maxheldframes [frames]\tSets the maximum duration a normal input will be held.");
@@ -38,6 +41,7 @@ namespace ControllerWrapper
             int maxSleepFrames = 100;
             int maxHeldFrames = 100;
             int maxHoldFrames = 24;
+            bool toggleTriggers = false;
             string forceFocusProgram = null;
             int forceSaveBackupSeconds = 0;
             string saveBackupEndpoint = "http://127.0.0.1:5000/back_up_savestate";
@@ -67,6 +71,18 @@ namespace ControllerWrapper
                         case "-controller":
                             controller = int.Parse(args[i + 1]);
                             ConsoleLogger.Info($"Simulating controller #{controller}");
+                            break;
+                        case "-lstickthrow":
+                            TPPInput.LThrowGlobalMult = double.Parse(args[i + 1]);
+                            ConsoleLogger.Info($"Left Stick max throw set to {(TPPInput.LThrowGlobalMult * 100).ToString("0")}%");
+                            break;
+                        case "-rstickthrow":
+                            TPPInput.RThrowGlobalMult = double.Parse(args[i + 1]);
+                            ConsoleLogger.Info($"Right Stick max throw set to {(TPPInput.RThrowGlobalMult * 100).ToString("0")}%");
+                            break;
+                        case "-toggletriggers":
+                            toggleTriggers = true;
+                            ConsoleLogger.Info("Left and Right Triggers will be toggled");
                             break;
                         case "-minheldframes":
                             minHeldFrames = int.Parse(args[i + 1]);
@@ -123,7 +139,7 @@ namespace ControllerWrapper
                 scpBus.Dispose();
             };
 
-            var inputFetcher = new FetchInput(scpBus, controller, minHeldFrames, maxHeldFrames, maxSleepFrames, maxHoldFrames, newInputEndpoint, doneInputEndpoint, forceFocusProgram);
+            var inputFetcher = new FetchInput(scpBus, controller, minHeldFrames, maxHeldFrames, maxSleepFrames, maxHoldFrames, toggleTriggers, newInputEndpoint, doneInputEndpoint, forceFocusProgram);
 
             var worker = new Worker(() => inputFetcher.Frame());
 

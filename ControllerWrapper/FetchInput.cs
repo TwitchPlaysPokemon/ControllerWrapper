@@ -25,7 +25,7 @@ namespace ControllerWrapper
         private string forceFocus;
 
 
-        public FetchInput(ScpBus ctrlBus, int controller, int minHeldFrames, int maxHeldFrames, int maxSleepFrames, int maxHoldFrames, string newInputUrl, string doneInputUrl, string forceFocusProgram)
+        public FetchInput(ScpBus ctrlBus, int controller, int minHeldFrames, int maxHeldFrames, int maxSleepFrames, int maxHoldFrames, bool toggleTriggers, string newInputUrl, string doneInputUrl, string forceFocusProgram)
         {
             scpBus = ctrlBus;
             scpController = controller;
@@ -39,6 +39,7 @@ namespace ControllerWrapper
             currentSeries = new Queue<TPPInput>();
             webClient = new ImpatientWebClient();
             forceFocus = forceFocusProgram;
+            TPPInput.ToggleTriggers = toggleTriggers;
         }
 
         public void Frame()
@@ -132,7 +133,7 @@ namespace ControllerWrapper
                     ForceFocus.BringMainWindowToFront(forceFocus);
 
                 scpBus.Report(scpController, input.GetReport());
-                ConsoleLogger.Info($"Buttons: {input.Buttons}");
+                PrintButtons(input);
                 if (currentInput.Held_Frames <= 0)
                     currentInput.Expire_Frames--;
             }
@@ -140,8 +141,12 @@ namespace ControllerWrapper
             {
                 var input = new TPPInput().ToX360();
                 scpBus.Report(scpController, input.GetReport());
-                ConsoleLogger.Info($"Buttons: {input.Buttons}");
+                PrintButtons(input);
             }
         }
+
+        private void PrintButtons(X360Controller input)
+            => ConsoleLogger.Info($"Buttons: {input.Buttons} | Lstick: ({input.LeftStickX}, {input.LeftStickY}) | Rstick: ({input.RightStickX}, {input.RightStickY}) | Ltrigger: {input.LeftTrigger} | Rtrigger: {input.RightTrigger}");
+
     }
 }

@@ -51,10 +51,17 @@ namespace ControllerWrapper
             else
             {
                 // the process is not running, so start it
-                var process = new Process();
-                process.StartInfo.FileName = processName;
-                process.StartInfo.WorkingDirectory = Path.GetDirectoryName(processName);
-                process.Start();
+                try
+                {
+                    var process = new Process();
+                    process.StartInfo.FileName = processName;
+                    process.StartInfo.WorkingDirectory = Path.GetDirectoryName(processName);
+                    process.Start();
+                }
+                catch (Exception e)
+                {
+                    ConsoleLogger.Critical($"Could not start process at ${processName}: ${e.Message}");
+                }
             }
         }
     }

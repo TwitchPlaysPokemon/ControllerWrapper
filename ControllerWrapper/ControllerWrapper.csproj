@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BoolOrDoubleConverter.cs" />
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="FetchInput.cs" />
     <Compile Include="ForceFocus.cs" />
