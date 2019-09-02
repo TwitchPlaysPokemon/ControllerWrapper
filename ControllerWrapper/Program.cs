@@ -21,6 +21,7 @@ namespace ControllerWrapper
             Console.WriteLine("-lstickthrow [number]\tSets the maximum throw of the left stick from 0-1. Default is 1.");
             Console.WriteLine("-rstickthrow [number]\tSets the maximum throw of the right stick from 0-1. Default is 1.");
             Console.WriteLine("-toggletriggers \tLeft and Right trigger are toggled each time they are pressed");
+            Console.WriteLine("-eternalholds \tHeld inputs last until the next held input");
             Console.WriteLine("-minheldframes [frames]\tSets the minimum duration an input will be held.");
             Console.WriteLine("-maxsleepframes [frames]\tSets the maximum duration between inputs.");
             Console.WriteLine("-maxheldframes [frames]\tSets the maximum duration a normal input will be held.");
@@ -40,8 +41,9 @@ namespace ControllerWrapper
             int minHeldFrames = 1;
             int maxSleepFrames = 100;
             int maxHeldFrames = 100;
-            int maxHoldFrames = 24;
+            int maxHoldFrames = 0; //24;
             bool toggleTriggers = false;
+            bool eternalHolds = true; //false;
             string forceFocusProgram = null;
             int forceSaveBackupSeconds = 0;
             string saveBackupEndpoint = "http://127.0.0.1:5000/back_up_savestate";
@@ -83,6 +85,11 @@ namespace ControllerWrapper
                         case "-toggletriggers":
                             toggleTriggers = true;
                             ConsoleLogger.Info("Left and Right Triggers will be toggled");
+                            break;
+                        case "-eternalholds":
+                            eternalHolds = true;
+                            maxHoldFrames = 0;
+                            ConsoleLogger.Info("Held inputs will last until the next held input");
                             break;
                         case "-minheldframes":
                             minHeldFrames = int.Parse(args[i + 1]);
@@ -139,7 +146,7 @@ namespace ControllerWrapper
                 scpBus.Dispose();
             };
 
-            var inputFetcher = new FetchInput(scpBus, controller, minHeldFrames, maxHeldFrames, maxSleepFrames, maxHoldFrames, toggleTriggers, newInputEndpoint, doneInputEndpoint, forceFocusProgram);
+            var inputFetcher = new FetchInput(scpBus, controller, minHeldFrames, maxHeldFrames, maxSleepFrames, maxHoldFrames, toggleTriggers, eternalHolds, newInputEndpoint, doneInputEndpoint, forceFocusProgram);
 
             var worker = new Worker(() => inputFetcher.Frame());
 

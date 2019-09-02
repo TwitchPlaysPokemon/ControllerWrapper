@@ -11,6 +11,7 @@ namespace ControllerWrapper
     class FetchInput
     {
         private TPPInput currentInput { get; set; }
+        private TPPInput lastHoldInput { get; set; }
         private Queue<TPPInput> currentSeries { get; set; }
         private ImpatientWebClient webClient { get; set; }
         private string newInputEndpoint { get; set; }
@@ -22,10 +23,11 @@ namespace ControllerWrapper
         private int maxHeld;
         private int maxHoldDuration;
         private bool HoldForever => maxHoldDuration <= 0;
+        private bool eternalHolds;
         private string forceFocus;
 
 
-        public FetchInput(ScpBus ctrlBus, int controller, int minHeldFrames, int maxHeldFrames, int maxSleepFrames, int maxHoldFrames, bool toggleTriggers, string newInputUrl, string doneInputUrl, string forceFocusProgram)
+        public FetchInput(ScpBus ctrlBus, int controller, int minHeldFrames, int maxHeldFrames, int maxSleepFrames, int maxHoldFrames, bool toggleTriggers, bool eternalHolding, string newInputUrl, string doneInputUrl, string forceFocusProgram)
         {
             scpBus = ctrlBus;
             scpController = controller;
@@ -33,6 +35,7 @@ namespace ControllerWrapper
             minHeld = minHeldFrames;
             maxHeld = maxHeldFrames;
             maxHoldDuration = maxHoldFrames;
+            eternalHolds = eternalHolding;
             newInputEndpoint = newInputUrl;
             doneInputEndpoint = doneInputUrl;
             currentInput = new TPPInput();
@@ -48,6 +51,8 @@ namespace ControllerWrapper
             {
                 if (currentSeries.Any())
                 {
+                    if (currentInput?.Hold ?? false)
+                        lastHoldInput = currentInput;
                     currentInput = currentSeries.Dequeue();
                     currentInput.active = true;
                 }
@@ -60,6 +65,8 @@ namespace ControllerWrapper
                         var nextInput = JsonConvert.DeserializeObject<TPPInput>(response);
                         if (!((currentInput.Hold || !currentInput.IsExpired) && nextInput.IsEmpty))
                         {
+                            if (currentInput?.Hold ?? false)
+                                lastHoldInput = currentInput;
                             currentInput = nextInput;
                         }
                     }
@@ -104,6 +111,10 @@ namespace ControllerWrapper
                                 currentInput.Expire_Frames -= currentInput.Sleep_Frames;
                             }
                         }
+                        if (eternalHolds && lastHoldInput != null && !currentInput.OverlapsWith(lastHoldInput))
+                            currentInput.MergeWith(lastHoldInput);
+                        else
+                            lastHoldInput = null; //eternal hold is released
                     }
                 }
             }
@@ -139,7 +150,7 @@ namespace ControllerWrapper
             }
             else if (!currentInput.Hold)
             {
-                var input = new TPPInput().ToX360();
+                var input = ((lastHoldInput?.Hold ?? false) ? lastHoldInput : new TPPInput()).ToX360();
                 scpBus.Report(scpController, input.GetReport());
                 PrintButtons(input);
             }

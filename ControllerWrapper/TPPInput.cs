@@ -171,5 +171,65 @@ namespace ControllerWrapper
 
             return controller;
         }
+
+        public virtual bool OverlapsWith(TPPInput otherInput)
+            => otherInput != null && (
+               (otherInput.A && A)
+            || (otherInput.B && B)
+            || (otherInput.X && X)
+            || (otherInput.Y && Y)
+            || (otherInput.L1 && L1)
+            || (otherInput.L2 && L2)
+            || (otherInput.L3 && L3)
+            || (otherInput.R1 && R1)
+            || (otherInput.R2 && R2)
+            || (otherInput.R3 && R3)
+            || (otherInput.Back && Back)
+            || (otherInput.Start && Start)
+            || (otherInput.Up && Up)
+            || (otherInput.Down && Down)
+            || (otherInput.Left && Left)
+            || (otherInput.Right && Right)
+            || (otherInput.Lup > 0 && Lup > 0)
+            || (otherInput.Ldown > 0 && Ldown > 0)
+            || (otherInput.Lleft > 0 && Lleft > 0)
+            || (otherInput.Lright > 0 && Lright > 0)
+            || (otherInput.Rup > 0 && Rup > 0)
+            || (otherInput.Rdown > 0 && Rdown > 0)
+            || (otherInput.Rleft > 0 && Rleft > 0)
+            || (otherInput.Rright > 0 && Rright > 0)
+            || (otherInput.Hold && Hold)
+            );
+
+        public virtual void MergeWith(TPPInput otherInput)
+        {
+            if (otherInput != null)
+            {
+                A = A || otherInput.A;
+                B = B || otherInput.B;
+                X = X || otherInput.X;
+                Y = Y || otherInput.Y;
+                L1 = L1 || otherInput.L1;
+                L2 = L2 || otherInput.L2;
+                L3 = L3 || otherInput.L3;
+                R1 = R1 || otherInput.R1;
+                R2 = R2 || otherInput.R2;
+                R3 = R3 || otherInput.R3;
+                Back = Back || otherInput.Back;
+                Start = Start || otherInput.Start;
+                Up = Up || otherInput.Up;
+                Down = Down || otherInput.Down;
+                Left = Left || otherInput.Left;
+                Right = Right || otherInput.Right;
+                Lup = otherInput.Lup > 0 ? otherInput.Lup : Lup;
+                Ldown = otherInput.Ldown > 0 ? otherInput.Ldown : Ldown;
+                Lleft = otherInput.Lleft > 0 ? otherInput.Lleft : Lleft;
+                Lright = otherInput.Lright > 0 ? otherInput.Lright : Lright;
+                Rup = otherInput.Rup > 0 ? otherInput.Rup : Rup;
+                Rdown = otherInput.Rdown > 0 ? otherInput.Rdown : Rdown;
+                Rleft = otherInput.Rleft > 0 ? otherInput.Rleft : Rleft;
+                Rright = otherInput.Rright > 0 ? otherInput.Rright : Rright;
+            }
+        }
     }
 }
