@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -41,12 +42,16 @@ namespace ControllerWrapper
             int minHeldFrames = 1;
             int maxSleepFrames = 100;
             int maxHeldFrames = 100;
-            int maxHoldFrames = 0; //24;
+            int maxHoldFrames = 24;
             bool toggleTriggers = false;
-            bool eternalHolds = true; //false;
+            bool eternalHolds = false;
             string forceFocusProgram = null;
             int forceSaveBackupSeconds = 0;
             string saveBackupEndpoint = "http://127.0.0.1:5000/back_up_savestate";
+
+#if DEBUG
+            ConsoleLogger.LogLevel = ConsoleLogger.Verbosity.Debug;
+#endif
 
             try
             {
@@ -58,6 +63,10 @@ namespace ControllerWrapper
                         case "-help":
                             PrintHelpText();
                             return;
+                        case "-v":
+                            ConsoleLogger.LogLevel = ConsoleLogger.Verbosity.Debug;
+                            ConsoleLogger.Debug("Verbose output.");
+                            break; ;
                         case "-inputendpoint":
                             newInputEndpoint = args[i + 1];
                             ConsoleLogger.Info($"Input endpoint: {newInputEndpoint}");
@@ -149,6 +158,9 @@ namespace ControllerWrapper
             var inputFetcher = new FetchInput(scpBus, controller, minHeldFrames, maxHeldFrames, maxSleepFrames, maxHoldFrames, toggleTriggers, eternalHolds, newInputEndpoint, doneInputEndpoint, forceFocusProgram);
 
             var worker = new Worker(() => inputFetcher.Frame());
+            //var stopwatch = new Stopwatch();
+            //var worker = new Worker(() => ConsoleLogger.Info($"{stopwatch.ElapsedTicks}"));
+            //stopwatch.Start();
 
             worker.Start();
 
