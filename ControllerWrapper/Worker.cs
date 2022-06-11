@@ -6,45 +6,31 @@ using System.Threading;
 
 namespace ControllerWrapper
 {
-    public class Worker : IDisposable
+    public class Worker
     {
-        private readonly Timer _timer;
-        private int PeriodInMs;
+        private readonly FPSTimer _timer;
         private Action Work;
 
-        public Worker(Action work, int milliseconds = 1000 / 60)
+        public Worker(Action work, int fps = 60)
         {
             Work = work;
-            PeriodInMs = milliseconds;
-            _timer = new Timer(_ => OnTick(), null, Timeout.Infinite, Timeout.Infinite);
+            _timer = new FPSTimer(OnTick, fps);
         }
 
-        public void Start()
-        {
-            _timer.Change(0, PeriodInMs);
-        }
+        public void Start() => _timer.Start();
 
-        public void Stop()
-        {
-            _timer.Change(Timeout.Infinite, Timeout.Infinite);
-        }
+        public void Stop() => _timer.Stop();
 
         private void OnTick()
         {
-            _timer.Change(Timeout.Infinite, Timeout.Infinite);
             try
             {
                 Work();
             }
-            finally
+            catch (Exception ex)
             {
-                _timer.Change(PeriodInMs, PeriodInMs);
+                ConsoleLogger.Error($"{ex.Message}: {ex.StackTrace}");
             }
-        }
-
-        public void Dispose()
-        {
-            _timer.Dispose();
         }
     }
 }

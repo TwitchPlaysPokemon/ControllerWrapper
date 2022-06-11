@@ -58,7 +58,10 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ControllerWrapper.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -82,6 +85,7 @@
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="FetchInput.cs" />
     <Compile Include="ForceFocus.cs" />
+    <Compile Include="FPSTimer.cs" />
     <Compile Include="ImpatientWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -93,7 +97,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="ControllerWrapper_TemporaryKey.pfx" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
