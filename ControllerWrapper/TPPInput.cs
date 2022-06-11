@@ -60,13 +60,13 @@ namespace ControllerWrapper
         public double Rright { get; set; }
         public bool R3 { get; set; }
         [JsonConverter(typeof(BoolOrDoubleConverter))]
-        public double Cup { get => Cup; set => Rup = value; }
+        public double Cup { get => Rup; set => Rup = value; }
         [JsonConverter(typeof(BoolOrDoubleConverter))]
-        public double Cdown { get => Cdown; set => Rdown = value; }
+        public double Cdown { get => Rdown; set => Rdown = value; }
         [JsonConverter(typeof(BoolOrDoubleConverter))]
-        public double Cleft { get => Cleft; set => Rleft = value; }
+        public double Cleft { get => Rleft; set => Rleft = value; }
         [JsonConverter(typeof(BoolOrDoubleConverter))]
-        public double Cright { get => Cright; set => Rright = value; }
+        public double Cright { get => Rright; set => Rright = value; }
         public static double RThrowGlobalMult { get; set; } = 1;
 
         //Shoulder buttons
